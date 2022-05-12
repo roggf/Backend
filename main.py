@@ -29,11 +29,7 @@ class Backend:
         return model
 
     def score_frame(self):
-        fps = 30
-        frame_width = 640
-        frame_height = 480
-
-        cap_receive = cv2.VideoCapture('udpsrc port=4001 ! application/x-rtp, clock-rate=90000, encoding-name=JPEG,'
+        cap_receive = cv2.VideoCapture('udpsrc port=4009 ! application/x-rtp, clock-rate=90000, encoding-name=JPEG,'
                                        'payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink',
                                        cv2.CAP_GSTREAMER)
 
@@ -55,11 +51,26 @@ class Backend:
         return dups, panda
 
     @staticmethod
-    def get_coordinates(dups, panda):
+    def get_coordinates(dups, panda, frame):
         cords = []
+        x_shape, y_shape = frame.shape[1], frame.shape[0]
         index = panda.index
         condition = panda['name'] == dups
         dups_index = index[condition].tolist()
+
+        x_min_1 = panda.iat[dups_index[0], 0]
+        y_min_1 = panda.iat[dups_index[0], 1]
+        x_max_1 = panda.iat[dups_index[0], 2]
+        y_max_1 = panda.iat[dups_index[0], 3]
+
+        x_min_2 = panda.iat[dups_index[1], 0]
+        y_min_2 = panda.iat[dups_index[1], 1]
+        x_max_2 = panda.iat[dups_index[1], 2]
+        y_max_2 = panda.iat[dups_index[1], 3]
+
+        cords = cords.append(int(x_min_1*x_shape), int(y_min_1*y_shape), int(x_max_1*x_shape), int(y_max_1*y_shape))
+        cords = cords.append(int(x_min_2*x_shape), int(y_min_2*y_shape), int(x_max_2*x_shape), int(y_max_2*y_shape))
+
         return cords
 
     def __call__(self):
